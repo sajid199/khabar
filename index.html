@@ -2,266 +2,171 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>News Card Maker</title>
 <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&family=Mukta:wght@700;800&family=Poppins:wght@600;700;800;900&family=Bebas+Neue&family=Oswald:wght@600;700&family=Anton&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --accent:#e63946;
-  --accent2:#c1121f;
-  --dark:#0d0d0d;
-  --panel:#161616;
-  --panel2:#1e1e1e;
-  --border:#2a2a2a;
-  --text:#eee;
-  --muted:#666;
-}
-body{font-family:'Hind',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;padding:16px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--acc:#e63946;--dark:#0a0a0a;--panel:#141414;--border:#252525;--text:#eee;--muted:#555;}
+body{font-family:'Hind',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overscroll-behavior:none;}
 
 /* ── LAYOUT ── */
-.app{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:520px;margin:0 auto;}
-@media(min-width:960px){
-  .app{flex-direction:row;align-items:flex-start;max-width:1160px;gap:28px;}
-  .card-col{position:sticky;top:20px;flex-shrink:0;}
-  .ctrl-col{flex:1;max-height:calc(100vh - 40px);overflow-y:auto;padding-right:4px;}
-  .ctrl-col::-webkit-scrollbar{width:3px;}
-  .ctrl-col::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
-}
+.app{display:flex;flex-direction:column;align-items:center;padding-bottom:90px;}
+
+/* ── CARD AREA ── */
+.card-col{width:100%;display:flex;flex-direction:column;align-items:center;padding:16px 12px 8px;}
 
 /* ── CARD ── */
 #card{
-  position:relative;overflow:hidden;border-radius:0;
-  box-shadow:0 20px 60px rgba(0,0,0,.8);
-  background:#fff;user-select:none;
-  transition:width .3s,height .3s;
-  width:420px;height:420px;
+  position:relative;overflow:hidden;
+  box-shadow:0 16px 50px rgba(0,0,0,.85);
+  background:#f0f0f0;user-select:none;
+  width:340px;height:340px;
+  touch-action:none;
 }
 
-/* BG LAYERS */
-#bg-solid{position:absolute;inset:0;z-index:0;}
-#bg-img-el{
-  position:absolute;top:0;left:0;
-  width:auto;height:auto;min-width:60px;min-height:60px;
-  z-index:1;cursor:grab;touch-action:none;display:none;
-  user-select:none;-webkit-user-drag:none;
-}
-#bg-img-el:active{cursor:grabbing;}
+/* BG */
+#bg-solid{position:absolute;inset:0;z-index:0;background:#f0f0f0;}
 
-/* WATERMARK TEXT BG */
-#wm-bg{
-  position:absolute;inset:0;z-index:2;
-  display:flex;flex-wrap:wrap;align-items:flex-start;
-  overflow:hidden;pointer-events:none;
-  opacity:0.08;
-}
+/* WATERMARK */
+#wm-bg{position:absolute;inset:0;z-index:2;display:flex;flex-wrap:wrap;align-items:flex-start;overflow:hidden;pointer-events:none;opacity:0.08;}
 
 /* LOGO BAR */
-#logo-bar{
-  position:absolute;top:0;left:0;right:0;
-  z-index:10;
-  display:flex;align-items:center;justify-content:center;
-  padding:10px 16px;
-}
-#logo-pill{
-  background:var(--accent);
-  color:#fff;
-  font-family:'Bebas Neue',sans-serif;
-  font-size:18px;
-  letter-spacing:2px;
-  padding:4px 18px 3px;
-  border-radius:4px;
-  display:flex;flex-direction:column;align-items:center;
-  line-height:1;
-}
-#logo-top{font-size:11px;letter-spacing:4px;opacity:0.85;font-family:'Oswald',sans-serif;}
-#logo-main{font-size:20px;letter-spacing:3px;}
+#logo-bar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:8px 14px;}
+#logo-pill{background:var(--acc);color:#fff;font-family:'Bebas Neue',sans-serif;padding:3px 16px 2px;border-radius:4px;display:flex;flex-direction:column;align-items:center;line-height:1;}
+#logo-top{font-size:10px;letter-spacing:4px;opacity:.85;font-family:'Oswald',sans-serif;}
+#logo-main{font-size:18px;letter-spacing:3px;}
 
-/* HEADLINE */
-#headline-el{
-  position:absolute;
-  left:0;right:0;
-  z-index:9;
-  padding:0 24px;
-  text-align:center;
-  cursor:grab;touch-action:none;
+/* ── DRAGGABLE TEXT BLOCKS ── */
+.txt-block{
+  position:absolute;z-index:9;
+  touch-action:none;cursor:pointer;
+  border:2px dashed transparent;
+  border-radius:4px;padding:3px 5px;
+  transition:border-color .15s;
+  min-width:40px;min-height:20px;
 }
-#headline-el:active{cursor:grabbing;}
+.txt-block.selected{border-color:rgba(230,57,70,.7);background:rgba(0,0,0,.06);}
+
+#headline-el{left:0;right:0;padding:0 16px 3px;}
 #headline-text{
   font-family:'Noto Sans Devanagari',sans-serif;
-  font-weight:900;
-  font-size:32px;
-  line-height:1.35;
-  color:#111;
+  font-weight:900;font-size:26px;
+  line-height:1.35;color:#111;text-align:center;
+  white-space:pre-wrap;word-break:break-word;
 }
 
-/* PERSON NAME + LABEL */
-#person-el{
-  position:absolute;
-  z-index:15;
-  cursor:grab;touch-action:none;
-}
-#person-el:active{cursor:grabbing;}
-#person-name{
-  font-family:'Hind',sans-serif;
-  font-weight:700;
-  font-size:16px;
-  color:var(--accent);
-  line-height:1.2;
-}
-#person-label{
-  font-family:'Hind',sans-serif;
-  font-weight:400;
-  font-size:12px;
-  color:#555;
-  line-height:1.3;
-}
+#person-el{bottom:44px;left:14px;}
+#person-name{font-family:'Hind',sans-serif;font-weight:700;font-size:14px;color:var(--acc);line-height:1.2;white-space:nowrap;}
+#person-label{font-family:'Hind',sans-serif;font-weight:400;font-size:11px;color:#555;line-height:1.3;white-space:nowrap;}
 
-/* MAIN PERSON IMAGE */
+/* ── MAIN IMAGE ── */
 #main-img-el{
-  position:absolute;
-  z-index:6;
-  cursor:grab;touch-action:none;
-  display:none;
-  user-select:none;-webkit-user-drag:none;
+  position:absolute;z-index:6;display:none;
+  touch-action:none;
+  transform-origin:center center;
 }
-#main-img-el:active{cursor:grabbing;}
-#main-img-el img{
-  width:100%;height:100%;
-  object-fit:cover;
-  display:block;
-}
+#main-img-el img{width:100%;height:auto;display:block;pointer-events:none;-webkit-user-drag:none;}
 
-/* CIRCULAR IMAGE */
-#circle-img-wrap{
-  position:absolute;
-  z-index:15;
-  cursor:grab;touch-action:none;
-  display:none;
+/* ── CIRCLE GROUP ── */
+#circle-group{
+  position:absolute;z-index:15;display:none;
+  touch-action:none;
+  transform-origin:center center;
 }
-#circle-img-wrap:active{cursor:grabbing;}
-#circle-img-inner{
-  border-radius:50%;overflow:hidden;
-  border:3px solid #fff;
-  box-shadow:0 4px 16px rgba(0,0,0,.35);
-  width:100%;height:100%;
-}
-#circle-img-inner img{width:100%;height:100%;object-fit:cover;display:block;}
+#circle-img-wrap{border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 3px 14px rgba(0,0,0,.4);width:76px;height:76px;margin:0 auto;}
+#circle-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+#circle-meta{margin-top:4px;text-align:center;width:100px;margin-left:-12px;}
+#circle-name{font-family:'Hind',sans-serif;font-weight:700;font-size:10px;color:#fff;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+#circle-role{font-family:'Hind',sans-serif;font-size:9px;color:rgba(255,255,255,.8);line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.9);}
 
-/* FOOTER BAR */
-#footer-bar{
-  position:absolute;bottom:0;left:0;right:0;
-  z-index:12;
-  background:var(--accent);
-  color:#fff;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 16px;
-  gap:8px;
+/* FOOTER */
+#footer-bar{position:absolute;bottom:0;left:0;right:0;z-index:12;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;gap:6px;}
+#footer-follow{font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;opacity:.9;font-style:italic;}
+#footer-icons{display:flex;align-items:center;gap:5px;}
+#footer-icons svg{width:13px;height:13px;fill:#fff;opacity:.9;}
+#footer-handle{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;}
+
+/* ── FLOATING TEXT TOOLBAR ── */
+#txt-toolbar{
+  display:none;position:absolute;z-index:100;
+  background:#1a1a1a;border:1px solid #333;border-radius:12px;
+  padding:6px 8px;box-shadow:0 8px 30px rgba(0,0,0,.8);
+  flex-direction:column;gap:6px;min-width:200px;max-width:260px;
 }
-#footer-follow{
-  font-family:'Oswald',sans-serif;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:1px;
-  opacity:0.9;
-  font-style:italic;
-}
-#footer-icons{display:flex;align-items:center;gap:6px;}
-#footer-icons svg{width:16px;height:16px;fill:#fff;opacity:0.9;}
-#footer-handle{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:15px;
-  letter-spacing:1.5px;
-}
+#txt-toolbar.open{display:flex;}
+.tb-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.tb-label{font-size:9px;color:#666;letter-spacing:1px;text-transform:uppercase;width:100%;margin-bottom:1px;}
+.tb-btn{background:#222;border:1px solid #333;border-radius:6px;color:#ccc;font-size:11px;padding:4px 8px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tb-btn:active,.tb-btn.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.tb-color{width:26px;height:26px;border-radius:50%;border:2px solid #333;cursor:pointer;flex-shrink:0;}
+.tb-color.active{border-color:#fff;}
+select.tb-sel{background:#222;border:1px solid #333;border-radius:6px;color:#ccc;font-size:11px;padding:4px 6px;outline:none;flex:1;-webkit-appearance:none;}
+input[type=color].tb-cpick{width:26px;height:26px;padding:0;border:2px solid #333;border-radius:50%;cursor:pointer;background:none;flex-shrink:0;}
+.tb-close-row{display:flex;justify-content:space-between;align-items:center;}
+.tb-close{background:none;border:none;color:#666;font-size:16px;cursor:pointer;padding:0 2px;line-height:1;}
+.tb-title{font-size:10px;color:#888;font-weight:700;letter-spacing:1px;}
+/* size +/- buttons */
+.sz-btn{background:#222;border:1px solid #333;border-radius:6px;color:#ccc;font-size:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
+.sz-btn:active{background:var(--acc);color:#fff;}
+.sz-val{font-size:12px;color:var(--acc);min-width:28px;text-align:center;font-weight:700;}
 
 /* ── CONTROLS ── */
-.ctrl-col{width:100%;}
-.section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;}
-.sec-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.ctrl-col{width:100%;padding:0 12px;}
+.section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.sec-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 label{font-size:12px;color:#aaa;display:block;margin-bottom:3px;}
-input[type=text],input[type=color],select,textarea{
-  width:100%;background:#0d0d0d;border:1px solid #2e2e2e;border-radius:8px;
-  color:#eee;font-family:'Hind',sans-serif;font-size:13px;padding:7px 10px;outline:none;
-  transition:border-color .2s;
-}
-input[type=text]:focus,select:focus,textarea:focus{border-color:#444;}
-textarea{resize:vertical;min-height:60px;}
-input[type=range]{width:100%;accent-color:var(--accent);}
-.row{display:flex;gap:8px;align-items:center;}
-.row label{margin:0;flex:1;font-size:12px;color:#aaa;}
+input[type=text],select,textarea{width:100%;background:#0d0d0d;border:1px solid #2e2e2e;border-radius:8px;color:#eee;font-family:'Hind',sans-serif;font-size:13px;padding:7px 10px;outline:none;}
+textarea{resize:none;min-height:50px;}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
 
 /* TOGGLE */
 .tog-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
 .tog-label{font-size:12px;color:#aaa;}
 .tog{width:36px;height:20px;border-radius:10px;background:#2a2a2a;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;}
 .tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;}
-.tog.on{background:var(--accent);}
+.tog.on{background:var(--acc);}
 .tog.on::after{left:19px;}
 
 /* RATIO BTNS */
-.ratio-btns{display:flex;gap:8px;}
-.rbtn{flex:1;padding:8px;border:1px solid #2e2e2e;border-radius:8px;background:#111;color:#aaa;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
-.rbtn:hover{border-color:#555;color:#fff;}
-.rbtn.active{border-color:var(--accent);background:#1e0a0a;color:var(--accent);}
+.ratio-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.rbtn{padding:8px 4px;border:1px solid #2e2e2e;border-radius:8px;background:#111;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
+.rbtn.active{border-color:var(--acc);background:#1e0a0a;color:var(--acc);}
 
-/* POSITION GRID */
-.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:6px;}
-.pgbtn{padding:5px 2px;background:#111;border:1px solid #2a2a2a;border-radius:6px;color:#555;font-size:10px;cursor:pointer;text-align:center;transition:all .15s;}
-.pgbtn:hover{border-color:#555;color:#eee;}
-.pgbtn.active{border-color:var(--accent);background:#200e0e;color:var(--accent);}
+/* BORDER BTNS */
+.border-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px;}
+.bbtn{padding:7px 4px;background:#111;border:1px solid #2e2e2e;border-radius:7px;color:#aaa;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;}
+.bbtn.active{border-color:var(--acc);color:var(--acc);background:#1e0a0a;}
 
-/* FILE UPLOAD */
-.upload-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:9px 14px;border:1.5px dashed #333;border-radius:10px;
-  cursor:pointer;color:#888;font-size:12px;transition:all .2s;
-  background:#0d0d0d;width:100%;
-}
-.upload-btn:hover{border-color:#666;color:#ccc;}
+/* COLOR ROW */
+.color-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center;}
+.cswatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex-shrink:0;}
+.cswatch.active{border-color:#fff;}
+
+/* UPLOAD BTN */
+.upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border:1.5px dashed #333;border-radius:10px;cursor:pointer;color:#888;font-size:12px;transition:all .2s;background:#0d0d0d;width:100%;}
 .upload-btn.has-img{border-color:#2a6a2a;color:#5bba5b;background:#0a150a;}
 
-/* SIZE SLIDER ROW */
-.slider-row{display:flex;align-items:center;gap:10px;margin-top:4px;}
-.slider-row input{flex:1;}
-.slider-val{font-size:11px;color:var(--accent);min-width:28px;text-align:right;}
+/* HINT */
+.hint{font-size:10px;color:#555;text-align:center;padding:6px 0;font-style:italic;}
 
-/* DOWNLOAD BTN */
-.dl-btn{
-  width:100%;padding:12px;border:none;border-radius:10px;
-  background:var(--accent);color:#fff;font-family:'Hind',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;
-  letter-spacing:.5px;
-}
-.dl-btn:hover{opacity:.85;}
+/* STICKY DL */
+.sticky-dl{position:fixed;bottom:0;left:0;right:0;background:#0a0a0a;padding:10px 16px 16px;border-top:1px solid var(--border);z-index:200;}
+.dl-btn{width:100%;padding:13px;border:none;border-radius:10px;background:var(--acc);color:#fff;font-family:'Hind',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.5px;}
+.dl-btn:active{opacity:.8;}
 .dl-btn:disabled{opacity:.5;}
-
-/* Color swatch row */
-.color-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
-.cswatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .15s;}
-.cswatch:hover,.cswatch.active{border-color:#fff;}
-
-/* Dash separator */
-hr.dash{border:none;border-top:1px solid var(--border);margin:10px 0;}
-
-/* Font select */
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- ═══ CARD COLUMN ═══ -->
+<!-- CARD -->
 <div class="card-col">
   <div id="card">
-    <!-- BG -->
     <div id="bg-solid"></div>
-    <img id="bg-img-el" draggable="false">
-
-    <!-- WATERMARK BG TEXT -->
     <div id="wm-bg"></div>
 
-    <!-- LOGO BAR -->
     <div id="logo-bar">
       <div id="logo-pill">
         <span id="logo-top">AapkiAwaaz</span>
@@ -269,24 +174,82 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       </div>
     </div>
 
+    <!-- FLOATING TEXT TOOLBAR -->
+    <div id="txt-toolbar">
+      <div class="tb-close-row">
+        <span class="tb-title" id="tb-title">HEADLINE</span>
+        <button class="tb-close" onclick="closeToolbar()">✕</button>
+      </div>
+      <!-- font -->
+      <div class="tb-row">
+        <span class="tb-label">Font</span>
+        <select class="tb-sel" id="tb-font" onchange="applyTbFont(this.value)">
+          <option value="'Noto Sans Devanagari',sans-serif">Noto Devanagari</option>
+          <option value="'Hind',sans-serif">Hind</option>
+          <option value="'Mukta',sans-serif">Mukta</option>
+          <option value="'Baloo 2',sans-serif">Baloo 2</option>
+          <option value="'Poppins',sans-serif">Poppins</option>
+          <option value="'Bebas Neue',cursive">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+        </select>
+      </div>
+      <!-- size -->
+      <div class="tb-row">
+        <span class="tb-label">Size</span>
+        <div class="sz-btn" onclick="changeTbSize(-1)">−</div>
+        <span class="sz-val" id="tb-sz-val">26</span>
+        <div class="sz-btn" onclick="changeTbSize(1)">+</div>
+        <!-- color -->
+        <input type="color" class="tb-cpick" id="tb-color" value="#111111" oninput="applyTbColor(this.value)" style="margin-left:6px;">
+      </div>
+      <!-- align (headline only) -->
+      <div class="tb-row" id="tb-align-row">
+        <span class="tb-label">Align</span>
+        <div class="tb-btn" onclick="applyTbAlign('left',this)">Left</div>
+        <div class="tb-btn on" onclick="applyTbAlign('center',this)">Center</div>
+        <div class="tb-btn" onclick="applyTbAlign('right',this)">Right</div>
+      </div>
+      <!-- label color (person only) -->
+      <div class="tb-row" id="tb-label-row" style="display:none;">
+        <span class="tb-label">Label color</span>
+        <input type="color" class="tb-cpick" id="tb-lcolor" value="#555555" oninput="applyTbLabelColor(this.value)">
+        <span style="font-size:10px;color:#666;margin-left:4px;">label/role</span>
+      </div>
+      <!-- edit text -->
+      <div class="tb-row">
+        <span class="tb-label" id="tb-text-label">Edit Text</span>
+      </div>
+      <textarea id="tb-text-inp" rows="3" style="width:100%;font-size:12px;" oninput="applyTbText(this.value)" placeholder="Type here…"></textarea>
+      <!-- person sub-label -->
+      <div id="tb-sublabel-wrap" style="display:none;margin-top:4px;">
+        <input type="text" id="tb-sublabel-inp" placeholder="Role / Designation" oninput="document.getElementById('person-label').textContent=this.value" style="font-size:12px;">
+      </div>
+    </div>
+
     <!-- HEADLINE -->
-    <div id="headline-el">
+    <div id="headline-el" class="txt-block" ontouchstart="onTxtTouch(event,'headline')" onmousedown="onTxtMouse(event,'headline')">
       <div id="headline-text">यहाँ अपनी खबर की हेडलाइन लिखें</div>
     </div>
 
-    <!-- MAIN PERSON IMAGE -->
-    <div id="main-img-el"><img id="main-img-img" draggable="false"></div>
+    <!-- MAIN IMAGE -->
+    <div id="main-img-el">
+      <img id="main-img-img" draggable="false">
+    </div>
 
     <!-- PERSON NAME -->
-    <div id="person-el">
+    <div id="person-el" class="txt-block" ontouchstart="onTxtTouch(event,'person')" onmousedown="onTxtMouse(event,'person')">
       <div id="person-name">- व्यक्ति का नाम</div>
       <div id="person-label">पद / परिचय</div>
     </div>
 
-    <!-- CIRCLE IMAGE -->
-    <div id="circle-img-wrap">
-      <div id="circle-img-inner">
+    <!-- CIRCLE GROUP -->
+    <div id="circle-group">
+      <div id="circle-img-wrap">
         <img id="circle-img-img" draggable="false">
+      </div>
+      <div id="circle-meta">
+        <div id="circle-name">नाम</div>
+        <div id="circle-role">पद</div>
       </div>
     </div>
 
@@ -303,24 +266,20 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <span id="footer-handle">/AapkiAwaaz</span>
     </div>
   </div>
-
-  <!-- Download -->
-  <div style="margin-top:12px;width:100%;max-width:420px;">
-    <button class="dl-btn" onclick="downloadCard()">⬇ Download Image</button>
-  </div>
+  <p class="hint">👆 Tap headline or name to style · Drag to move · Pinch to resize images</p>
 </div>
 
-<!-- ═══ CONTROLS COLUMN ═══ -->
+<!-- CONTROLS -->
 <div class="ctrl-col">
 
   <!-- RATIO -->
   <div class="section">
     <div class="sec-title">Card Ratio</div>
     <div class="ratio-btns">
-      <div class="rbtn active" onclick="setRatio('1:1',this)">1:1<br><span style="font-size:10px;font-weight:400;color:#666">Square</span></div>
-      <div class="rbtn" onclick="setRatio('4:5',this)">4:5<br><span style="font-size:10px;font-weight:400;color:#666">Portrait</span></div>
-      <div class="rbtn" onclick="setRatio('9:16',this)">9:16<br><span style="font-size:10px;font-weight:400;color:#666">Story</span></div>
-      <div class="rbtn" onclick="setRatio('16:9',this)">16:9<br><span style="font-size:10px;font-weight:400;color:#666">Wide</span></div>
+      <div class="rbtn active" onclick="setRatio('1:1',this)">1:1<br><span style="font-size:9px;font-weight:400;color:#555">Square</span></div>
+      <div class="rbtn" onclick="setRatio('4:5',this)">4:5<br><span style="font-size:9px;font-weight:400;color:#555">Portrait</span></div>
+      <div class="rbtn" onclick="setRatio('9:16',this)">9:16<br><span style="font-size:9px;font-weight:400;color:#555">Story</span></div>
+      <div class="rbtn" onclick="setRatio('16:9',this)">16:9<br><span style="font-size:9px;font-weight:400;color:#555">Wide</span></div>
     </div>
   </div>
 
@@ -331,23 +290,19 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <span class="tog-label">Show Logo Bar</span>
       <div class="tog on" id="tog-logo" onclick="toggleEl('logo-bar','tog-logo')"></div>
     </div>
-    <label>Channel Name (top)</label>
-    <input type="text" id="logo-top-inp" value="AapkiAwaaz" oninput="document.getElementById('logo-top').textContent=this.value">
-    <div style="margin-top:6px;">
-      <label>Channel Name (main)</label>
-      <input type="text" id="logo-main-inp" value="NEWS" oninput="document.getElementById('logo-main').textContent=this.value">
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label>Top Text</label><input type="text" value="AapkiAwaaz" oninput="document.getElementById('logo-top').textContent=this.value"></div>
+      <div style="flex:1;"><label>Main Text</label><input type="text" value="NEWS" oninput="document.getElementById('logo-main').textContent=this.value"></div>
     </div>
-    <div style="margin-top:6px;">
-      <label>Logo / Accent Color</label>
-      <div class="color-row">
-        <div class="cswatch active" style="background:#e63946" onclick="setAccentColor('#e63946',this)"></div>
-        <div class="cswatch" style="background:#2196f3" onclick="setAccentColor('#2196f3',this)"></div>
-        <div class="cswatch" style="background:#222222" onclick="setAccentColor('#222222',this)"></div>
-        <div class="cswatch" style="background:#1b5e20" onclick="setAccentColor('#1b5e20',this)"></div>
-        <div class="cswatch" style="background:#e65c00" onclick="setAccentColor('#e65c00',this)"></div>
-        <div class="cswatch" style="background:#6a1b9a" onclick="setAccentColor('#6a1b9a',this)"></div>
-        <input type="color" id="accent-custom" value="#e63946" oninput="setAccentColor(this.value,null)" style="width:24px;height:24px;padding:0;border:none;border-radius:50%;cursor:pointer;background:none;">
-      </div>
+    <label style="margin-top:8px;">Accent Color</label>
+    <div class="color-row">
+      <div class="cswatch active" style="background:#e63946" onclick="setAccentColor('#e63946',this)"></div>
+      <div class="cswatch" style="background:#2196f3" onclick="setAccentColor('#2196f3',this)"></div>
+      <div class="cswatch" style="background:#222222" onclick="setAccentColor('#222222',this)"></div>
+      <div class="cswatch" style="background:#1b5e20" onclick="setAccentColor('#1b5e20',this)"></div>
+      <div class="cswatch" style="background:#e65c00" onclick="setAccentColor('#e65c00',this)"></div>
+      <div class="cswatch" style="background:#6a1b9a" onclick="setAccentColor('#6a1b9a',this)"></div>
+      <input type="color" value="#e63946" oninput="setAccentColor(this.value,null)" style="width:22px;height:22px;padding:0;border:2px solid #333;border-radius:50%;cursor:pointer;background:none;">
     </div>
   </div>
 
@@ -359,673 +314,530 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <div class="tog on" id="tog-footer" onclick="toggleEl('footer-bar','tog-footer')"></div>
     </div>
     <label>Handle / Username</label>
-    <input type="text" id="handle-inp" value="/AapkiAwaaz" oninput="document.getElementById('footer-handle').textContent=this.value">
-  </div>
-
-  <!-- BACKGROUND -->
-  <div class="section">
-    <div class="sec-title">Background</div>
-    <label>BG Color</label>
-    <div class="color-row" style="margin-bottom:8px;">
-      <div class="cswatch active" style="background:#f0f0f0" onclick="setBgColor('#f0f0f0',this)"></div>
-      <div class="cswatch" style="background:#ffffff" onclick="setBgColor('#ffffff',this)"></div>
-      <div class="cswatch" style="background:#111111" onclick="setBgColor('#111111',this)"></div>
-      <div class="cswatch" style="background:#1a1a2e" onclick="setBgColor('#1a1a2e',this)"></div>
-      <div class="cswatch" style="background:#fdf6e3" onclick="setBgColor('#fdf6e3',this)"></div>
-      <div class="cswatch" style="background:#e8f5e9" onclick="setBgColor('#e8f5e9',this)"></div>
-      <input type="color" id="bg-color-pick" value="#f0f0f0" oninput="setBgColor(this.value,null)" style="width:24px;height:24px;padding:0;border:none;border-radius:50%;cursor:pointer;background:none;">
-    </div>
-    <label>Background Image (optional)</label>
-    <label class="upload-btn" id="bg-upload-label" for="bg-upload-inp">
-      <span>📁 Upload BG Image</span>
-    </label>
-    <input type="file" id="bg-upload-inp" accept="image/*" style="display:none" onchange="loadBgImg(this)">
-    <div class="tog-row" style="margin-top:8px;">
-      <span class="tog-label">BG Image Visible</span>
-      <div class="tog on" id="tog-bgimg" onclick="toggleBgImg()"></div>
-    </div>
-    <label style="margin-top:6px;">BG Image Scale</label>
-    <div class="slider-row">
-      <input type="range" min="20" max="300" value="100" id="bgimg-scale" oninput="setBgImgScale(this.value)">
-      <span class="slider-val" id="bgimg-scale-val">100</span>
-    </div>
-    <div style="margin-top:6px;">
-      <div class="tog-row">
-        <span class="tog-label">Watermark Text</span>
-        <div class="tog on" id="tog-wm" onclick="toggleEl('wm-bg','tog-wm')"></div>
-      </div>
-      <input type="text" id="wm-text-inp" value="AapkiAwaaz NEWS" oninput="updateWatermark()" style="margin-top:4px;">
-    </div>
-    <label style="margin-top:8px;">Opacity / Density</label>
-    <div class="slider-row">
-      <input type="range" min="1" max="100" value="8" id="wm-opacity" oninput="setWmOpacity(this.value)">
-      <span class="slider-val" id="wm-opacity-val">8</span>
-    </div>
-    <label style="margin-top:6px;">Font Size</label>
-    <div class="slider-row">
-      <input type="range" min="8" max="40" value="13" id="wm-size" oninput="setWmSize(this.value)">
-      <span class="slider-val" id="wm-size-val">13</span>
-    </div>
-    <label style="margin-top:6px;">Text Color</label>
-    <div class="color-row">
-      <div class="cswatch active" style="background:#111111" onclick="setWmColor('#111111',this)"></div>
-      <div class="cswatch" style="background:#ffffff" onclick="setWmColor('#ffffff',this)"></div>
-      <div class="cswatch" style="background:#e63946" onclick="setWmColor('#e63946',this)"></div>
-      <div class="cswatch" style="background:#2196f3" onclick="setWmColor('#2196f3',this)"></div>
-      <input type="color" id="wm-color-pick" value="#111111" oninput="setWmColor(this.value,null)" style="width:24px;height:24px;padding:0;border:none;border-radius:50%;cursor:pointer;background:none;">
-    </div>
-  </div>
-
-  <!-- HEADLINE -->
-  <div class="section">
-    <div class="sec-title">Headline / News Text</div>
-    <label>Headline Text (Hindi/English)</label>
-    <textarea id="headline-inp" oninput="updateHeadline()">यहाँ अपनी खबर की हेडलाइन लिखें</textarea>
-    <div style="margin-top:8px;display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Font</label>
-        <select id="headline-font" onchange="setHeadlineFont(this.value)">
-          <option value="'Noto Sans Devanagari',sans-serif">Noto Sans Devanagari</option>
-          <option value="'Hind',sans-serif">Hind</option>
-          <option value="'Mukta',sans-serif">Mukta</option>
-          <option value="'Baloo 2',sans-serif">Baloo 2</option>
-          <option value="'Poppins',sans-serif">Poppins</option>
-          <option value="'Bebas Neue',cursive">Bebas Neue</option>
-          <option value="'Oswald',sans-serif">Oswald</option>
-        </select>
-      </div>
-      <div style="flex:1;">
-        <label>Text Color</label>
-        <input type="color" id="headline-color" value="#111111" oninput="document.getElementById('headline-text').style.color=this.value" style="height:36px;">
-      </div>
-    </div>
-    <label style="margin-top:8px;">Font Size</label>
-    <div class="slider-row">
-      <input type="range" min="14" max="72" value="32" id="headline-size" oninput="setHeadlineSize(this.value)">
-      <span class="slider-val" id="headline-size-val">32</span>
-    </div>
-    <label style="margin-top:6px;">Text Align</label>
-    <div style="display:flex;gap:6px;margin-top:4px;">
-      <button class="pgbtn active" style="flex:1" onclick="setHeadlineAlign('left',this)">Left</button>
-      <button class="pgbtn active" style="flex:1" onclick="setHeadlineAlign('center',this)">Center</button>
-      <button class="pgbtn" style="flex:1" onclick="setHeadlineAlign('right',this)">Right</button>
-    </div>
-    <label style="margin-top:8px;">Position</label>
-    <div class="pos-grid" id="headline-pos-grid">
-      <div class="pgbtn" onclick="setHeadlinePos('top-left',this)">↖</div>
-      <div class="pgbtn" onclick="setHeadlinePos('top-center',this)">↑</div>
-      <div class="pgbtn" onclick="setHeadlinePos('top-right',this)">↗</div>
-      <div class="pgbtn" onclick="setHeadlinePos('mid-left',this)">←</div>
-      <div class="pgbtn active" onclick="setHeadlinePos('mid-center',this)">●</div>
-      <div class="pgbtn" onclick="setHeadlinePos('mid-right',this)">→</div>
-      <div class="pgbtn" onclick="setHeadlinePos('bot-left',this)">↙</div>
-      <div class="pgbtn" onclick="setHeadlinePos('bot-center',this)">↓</div>
-      <div class="pgbtn" onclick="setHeadlinePos('bot-right',this)">↘</div>
-    </div>
-  </div>
-
-  <!-- PERSON NAME -->
-  <div class="section">
-    <div class="sec-title">Person Name / Attribution</div>
-    <div class="tog-row">
-      <span class="tog-label">Show Name</span>
-      <div class="tog on" id="tog-person" onclick="toggleEl('person-el','tog-person')"></div>
-    </div>
-    <label>Name</label>
-    <input type="text" id="person-name-inp" value="- व्यक्ति का नाम" oninput="document.getElementById('person-name').textContent=this.value">
-    <div style="margin-top:6px;">
-      <label>Label / Designation</label>
-      <input type="text" id="person-label-inp" value="पद / परिचय" oninput="document.getElementById('person-label').textContent=this.value">
-    </div>
-    <div style="margin-top:6px;display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Name Color</label>
-        <input type="color" id="person-name-color" value="#e63946" oninput="document.getElementById('person-name').style.color=this.value" style="height:36px;">
-      </div>
-      <div style="flex:1;">
-        <label>Label Color</label>
-        <input type="color" id="person-label-color" value="#555555" oninput="document.getElementById('person-label').style.color=this.value" style="height:36px;">
-      </div>
-    </div>
-    <label style="margin-top:6px;">Name Font Size</label>
-    <div class="slider-row">
-      <input type="range" min="10" max="36" value="16" id="person-size" oninput="setPersonSize(this.value)">
-      <span class="slider-val" id="person-size-val">16</span>
-    </div>
-    <label style="margin-top:6px;">Position</label>
-    <div class="pos-grid" id="person-pos-grid">
-      <div class="pgbtn" onclick="setPersonPos('top-left',this)">↖</div>
-      <div class="pgbtn" onclick="setPersonPos('top-center',this)">↑</div>
-      <div class="pgbtn" onclick="setPersonPos('top-right',this)">↗</div>
-      <div class="pgbtn" onclick="setPersonPos('mid-left',this)">←</div>
-      <div class="pgbtn" onclick="setPersonPos('mid-center',this)">●</div>
-      <div class="pgbtn" onclick="setPersonPos('mid-right',this)">→</div>
-      <div class="pgbtn active" onclick="setPersonPos('bot-left',this)">↙</div>
-      <div class="pgbtn" onclick="setPersonPos('bot-center',this)">↓</div>
-      <div class="pgbtn" onclick="setPersonPos('bot-right',this)">↘</div>
-    </div>
+    <input type="text" value="/AapkiAwaaz" oninput="document.getElementById('footer-handle').textContent=this.value">
   </div>
 
   <!-- MAIN IMAGE -->
   <div class="section">
     <div class="sec-title">Main Person Image</div>
     <div class="tog-row">
-      <span class="tog-label">Show Main Image</span>
+      <span class="tog-label">Show</span>
       <div class="tog on" id="tog-mainimg" onclick="toggleMainImg()"></div>
     </div>
-    <label>Upload Image</label>
+    <label>Upload (PNG without background best)</label>
     <label class="upload-btn" id="main-upload-label" for="main-upload-inp">
       <span>📁 Upload Main Image</span>
     </label>
     <input type="file" id="main-upload-inp" accept="image/*" style="display:none" onchange="loadMainImg(this)">
-    <label style="margin-top:8px;">Width %</label>
-    <div class="slider-row">
-      <input type="range" min="20" max="100" value="60" id="main-img-w" oninput="setMainImgSize(this.value)">
-      <span class="slider-val" id="main-img-w-val">60</span>
-    </div>
-    <label style="margin-top:6px;">Position</label>
-    <div class="pos-grid" id="main-img-pos-grid">
-      <div class="pgbtn" onclick="setMainImgPos('top-left',this)">↖</div>
-      <div class="pgbtn" onclick="setMainImgPos('top-center',this)">↑</div>
-      <div class="pgbtn" onclick="setMainImgPos('top-right',this)">↗</div>
-      <div class="pgbtn" onclick="setMainImgPos('mid-left',this)">←</div>
-      <div class="pgbtn" onclick="setMainImgPos('mid-center',this)">●</div>
-      <div class="pgbtn" onclick="setMainImgPos('mid-right',this)">→</div>
-      <div class="pgbtn active" onclick="setMainImgPos('bot-left',this)">↙</div>
-      <div class="pgbtn" onclick="setMainImgPos('bot-center',this)">↓</div>
-      <div class="pgbtn active" onclick="setMainImgPos('bot-right',this)">↘</div>
+    <label style="margin-top:10px;">Border Style</label>
+    <div class="border-btns">
+      <div class="bbtn active" onclick="setMainBorder('none',this)">None</div>
+      <div class="bbtn" onclick="setMainBorder('glow',this)">✨ Glow</div>
+      <div class="bbtn" onclick="setMainBorder('solid',this)">— Solid</div>
+      <div class="bbtn" onclick="setMainBorder('white',this)">◻ White</div>
     </div>
   </div>
 
   <!-- CIRCULAR IMAGE -->
   <div class="section">
-    <div class="sec-title">Circular Image (Profile / 2nd Person)</div>
+    <div class="sec-title">Persona Circle</div>
     <div class="tog-row">
-      <span class="tog-label">Show Circular Image</span>
+      <span class="tog-label">Show</span>
       <div class="tog" id="tog-circle" onclick="toggleCircleImg()"></div>
     </div>
-    <label>Upload Image</label>
+    <label>Upload Circle Image</label>
     <label class="upload-btn" id="circle-upload-label" for="circle-upload-inp">
       <span>📁 Upload Circle Image</span>
     </label>
     <input type="file" id="circle-upload-inp" accept="image/*" style="display:none" onchange="loadCircleImg(this)">
-    <label style="margin-top:8px;">Size (px)</label>
-    <div class="slider-row">
-      <input type="range" min="40" max="200" value="90" id="circle-size" oninput="setCircleSize(this.value)">
-      <span class="slider-val" id="circle-size-val">90</span>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <div style="flex:1;"><label>Name</label><input type="text" value="नाम" oninput="document.getElementById('circle-name').textContent=this.value"></div>
+      <div style="flex:1;"><label>Role/Post</label><input type="text" value="पद" oninput="document.getElementById('circle-role').textContent=this.value"></div>
     </div>
-    <label style="margin-top:6px;">Border Color</label>
+    <label style="margin-top:8px;">Border Color</label>
     <div class="color-row">
       <div class="cswatch active" style="background:#ffffff" onclick="setCircleBorder('#ffffff',this)"></div>
       <div class="cswatch" style="background:#e63946" onclick="setCircleBorder('#e63946',this)"></div>
       <div class="cswatch" style="background:#ffd700" onclick="setCircleBorder('#ffd700',this)"></div>
       <div class="cswatch" style="background:#111111" onclick="setCircleBorder('#111111',this)"></div>
-      <input type="color" id="circle-border-pick" value="#ffffff" oninput="setCircleBorder(this.value,null)" style="width:24px;height:24px;padding:0;border:none;border-radius:50%;cursor:pointer;background:none;">
-    </div>
-    <label style="margin-top:6px;">Position</label>
-    <div class="pos-grid" id="circle-pos-grid">
-      <div class="pgbtn" onclick="setCirclePos('top-left',this)">↖</div>
-      <div class="pgbtn" onclick="setCirclePos('top-center',this)">↑</div>
-      <div class="pgbtn active" onclick="setCirclePos('top-right',this)">↗</div>
-      <div class="pgbtn" onclick="setCirclePos('mid-left',this)">←</div>
-      <div class="pgbtn" onclick="setCirclePos('mid-center',this)">●</div>
-      <div class="pgbtn" onclick="setCirclePos('mid-right',this)">→</div>
-      <div class="pgbtn" onclick="setCirclePos('bot-left',this)">↙</div>
-      <div class="pgbtn" onclick="setCirclePos('bot-center',this)">↓</div>
-      <div class="pgbtn" onclick="setCirclePos('bot-right',this)">↘</div>
+      <input type="color" value="#ffffff" oninput="setCircleBorder(this.value,null)" style="width:22px;height:22px;padding:0;border:2px solid #333;border-radius:50%;cursor:pointer;background:none;">
     </div>
   </div>
 
-  <!-- EXPORT -->
+  <!-- BG COLOR only -->
   <div class="section">
-    <div class="sec-title">Export</div>
-    <label>Export Scale (Quality)</label>
-    <div class="slider-row">
-      <input type="range" min="1" max="4" step="0.5" value="2" id="export-scale">
-      <span class="slider-val" id="export-scale-val">2x</span>
+    <div class="sec-title">Background Color</div>
+    <div class="color-row">
+      <div class="cswatch active" style="background:#f0f0f0" onclick="setBgColor('#f0f0f0',this)"></div>
+      <div class="cswatch" style="background:#ffffff" onclick="setBgColor('#ffffff',this)"></div>
+      <div class="cswatch" style="background:#111111" onclick="setBgColor('#111111',this)"></div>
+      <div class="cswatch" style="background:#1a1a2e" onclick="setBgColor('#1a1a2e',this)"></div>
+      <div class="cswatch" style="background:#fdf6e3" onclick="setBgColor('#fdf6e3',this)"></div>
+      <div class="cswatch" style="background:#e8f5e9" onclick="setBgColor('#e8f5e9',this)"></div>
+      <div class="cswatch" style="background:#0d1b2a" onclick="setBgColor('#0d1b2a',this)"></div>
+      <div class="cswatch" style="background:#2d0a0a" onclick="setBgColor('#2d0a0a',this)"></div>
+      <input type="color" value="#f0f0f0" oninput="setBgColor(this.value,null)" style="width:22px;height:22px;padding:0;border:2px solid #333;border-radius:50%;cursor:pointer;background:none;">
     </div>
-    <script>document.getElementById('export-scale').oninput=function(){document.getElementById('export-scale-val').textContent=this.value+'x';};</script>
-    <button class="dl-btn" style="margin-top:10px" onclick="downloadCard()">⬇ Download Image</button>
   </div>
 
-</div><!-- end ctrl-col -->
-</div><!-- end app -->
+  <!-- EXPORT QUALITY -->
+  <div class="section">
+    <div class="sec-title">Export Quality</div>
+    <div style="display:flex;gap:8px;">
+      <div class="rbtn active" onclick="setExportScale(2,this)" style="flex:1;">2x<br><span style="font-size:9px;color:#555">Good</span></div>
+      <div class="rbtn" onclick="setExportScale(3,this)" style="flex:1;">3x<br><span style="font-size:9px;color:#555">High</span></div>
+      <div class="rbtn" onclick="setExportScale(4,this)" style="flex:1;">4x<br><span style="font-size:9px;color:#555">Best</span></div>
+    </div>
+  </div>
+
+</div><!-- ctrl-col -->
+</div><!-- app -->
+
+<div class="sticky-dl">
+  <button class="dl-btn" id="dl-btn" onclick="downloadCard()">⬇ Download Image</button>
+</div>
 
 <script>
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    STATE
-═══════════════════════════════════════ */
-let bgImgLoaded = false;
-let mainImgLoaded = false;
-let circleImgLoaded = false;
-let circleVisible = false;
-let mainImgVisible = false;
-let bgImgVisible = true;
-let accentColor = '#e63946';
-const CARD_W = 420;
-const CARD_H = 420;
+═══════════════════════════════ */
+let accentColor='#e63946';
+let mainImgVisible=false, circleVisible=false;
+let mainImgLoaded=false, circleImgLoaded=false;
+let exportScale=2;
+let selectedTxtEl=null; // 'headline' | 'person'
+let tbCurrentSize={headline:26,person:14};
 
-/* ═══════════════════════════════════════
+// per-element transform state
+const imgState={
+  main:{x:0,y:0,scale:1,w:0,h:0},
+  circle:{x:0,y:0,scale:1,w:76,h:76}
+};
+
+/* ═══════════════════════════════
    INIT
-═══════════════════════════════════════ */
-window.addEventListener('load', () => {
-  setCardSize(420, 420);
-  initDrag('headline-el');
-  initDrag('person-el');
-  initDrag('main-img-el');
-  initDrag('circle-img-wrap');
-  initDrag('bg-img-el');
-  updateHeadline();
+═══════════════════════════════ */
+window.addEventListener('load',()=>{
+  // watermark default
   updateWatermark();
-  positionDefaults();
-  setCircleSize(90);
-  setMainImgSize(60);
+  // position headline center
+  const card=document.getElementById('card');
+  const hl=document.getElementById('headline-el');
+  hl.style.top=((card.clientHeight-60)/2)+'px';
+  // init drag for text blocks
+  initTxtDrag('headline-el');
+  initTxtDrag('person-el');
+  // init pinch+drag for images
+  initImgGesture('main-img-el','main');
+  initImgGesture('circle-group','circle');
+  // close toolbar on card background tap
+  document.getElementById('card').addEventListener('click',e=>{
+    if(e.target.id==='card'||e.target.id==='bg-solid'||e.target.id==='wm-bg'||e.target.id==='footer-bar')closeToolbar();
+  });
 });
 
-function positionDefaults() {
-  // headline center
-  setHeadlinePos('mid-center', document.querySelector('#headline-pos-grid .active'));
-  // person bottom left
-  setPersonPos('bot-left', document.querySelector('#person-pos-grid [onclick*="bot-left"]'));
-  // main img bottom right
-  setMainImgPos('bot-right', null);
-  // circle top right
-  setCirclePos('top-right', document.querySelector('#circle-pos-grid .active'));
-}
-
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    RATIO
-═══════════════════════════════════════ */
-function setRatio(r, btn) {
-  document.querySelectorAll('.ratio-btns .rbtn').forEach(b => b.classList.remove('active'));
+═══════════════════════════════ */
+function setRatio(r,btn){
+  document.querySelectorAll('.ratio-btns .rbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  let w, h;
-  if (r === '1:1') { w = 420; h = 420; }
-  else if (r === '4:5') { w = 420; h = 525; }
-  else if (r === '9:16') { w = 360; h = 640; }
-  else if (r === '16:9') { w = 560; h = 315; }
-  setCardSize(w, h);
+  const base=340;
+  let w,h;
+  if(r==='1:1'){w=base;h=base;}
+  else if(r==='4:5'){w=base;h=Math.round(base*1.25);}
+  else if(r==='9:16'){w=Math.round(base*9/16);h=base;}
+  else if(r==='16:9'){w=base;h=Math.round(base*9/16);}
+  const card=document.getElementById('card');
+  card.style.width=w+'px';card.style.height=h+'px';
 }
 
-function setCardSize(w, h) {
-  const card = document.getElementById('card');
-  card.style.width = w + 'px';
-  card.style.height = h + 'px';
-  // Reposition elements
-  setTimeout(() => {
-    setHeadlinePos(currentHeadlinePos);
-    setPersonPos(currentPersonPos);
-    setCirclePos(currentCirclePos);
-    setMainImgPos(currentMainImgPos);
-  }, 50);
+/* ═══════════════════════════════
+   TOGGLE
+═══════════════════════════════ */
+function toggleEl(elId,togId){
+  const el=document.getElementById(elId);
+  const tog=document.getElementById(togId);
+  const on=tog.classList.toggle('on');
+  el.style.display=on?'':'none';
+}
+function toggleMainImg(){
+  mainImgVisible=!mainImgVisible;
+  document.getElementById('tog-mainimg').classList.toggle('on',mainImgVisible);
+  if(mainImgLoaded)document.getElementById('main-img-el').style.display=mainImgVisible?'block':'none';
+}
+function toggleCircleImg(){
+  circleVisible=!circleVisible;
+  document.getElementById('tog-circle').classList.toggle('on',circleVisible);
+  document.getElementById('circle-group').style.display=circleVisible?'block':'none';
 }
 
-/* ═══════════════════════════════════════
-   TOGGLE HELPERS
-═══════════════════════════════════════ */
-function toggleEl(elId, togId) {
-  const el = document.getElementById(elId);
-  const tog = document.getElementById(togId);
-  const isOn = tog.classList.toggle('on');
-  el.style.display = isOn ? '' : 'none';
-}
-
-function toggleBgImg() {
-  bgImgVisible = !bgImgVisible;
-  document.getElementById('tog-bgimg').classList.toggle('on', bgImgVisible);
-  if (bgImgLoaded) {
-    document.getElementById('bg-img-el').style.display = bgImgVisible ? 'block' : 'none';
-  }
-}
-
-function toggleMainImg() {
-  mainImgVisible = !mainImgVisible;
-  document.getElementById('tog-mainimg').classList.toggle('on', mainImgVisible);
-  if (mainImgLoaded) {
-    document.getElementById('main-img-el').style.display = mainImgVisible ? 'block' : 'none';
-  }
-}
-
-function toggleCircleImg() {
-  circleVisible = !circleVisible;
-  document.getElementById('tog-circle').classList.toggle('on', circleVisible);
-  if (circleImgLoaded) {
-    document.getElementById('circle-img-wrap').style.display = circleVisible ? 'block' : 'none';
-  }
-}
-
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    ACCENT COLOR
-═══════════════════════════════════════ */
-function setAccentColor(c, swatch) {
-  accentColor = c;
-  document.querySelectorAll('.color-row .cswatch').forEach(s => {
-    if (s.closest('.section') === (swatch ? swatch.closest('.section') : null)) s.classList.remove('active');
-  });
-  if (swatch) swatch.classList.add('active');
-  document.getElementById('logo-pill').style.background = c;
-  document.getElementById('footer-bar').style.background = c;
-  document.getElementById('person-name').style.color = c;
-  document.getElementById('person-name-color').value = c;
-  document.getElementById('accent-custom').value = c;
+═══════════════════════════════ */
+function setAccentColor(c,swatch){
+  accentColor=c;
+  document.documentElement.style.setProperty('--acc',c);
+  document.getElementById('logo-pill').style.background=c;
+  document.getElementById('footer-bar').style.background=c;
+  document.getElementById('person-name').style.color=c;
+  if(swatch){swatch.closest('.color-row').querySelectorAll('.cswatch').forEach(s=>s.classList.remove('active'));swatch.classList.add('active');}
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    BG COLOR
-═══════════════════════════════════════ */
-function setBgColor(c, swatch) {
-  document.getElementById('bg-solid').style.background = c;
-  document.getElementById('bg-color-pick').value = c;
-  if (swatch) {
-    document.querySelectorAll('#bg-solid + * .cswatch, .section:nth-child(4) .cswatch').forEach(s => s.classList.remove('active'));
-    swatch.classList.add('active');
+═══════════════════════════════ */
+function setBgColor(c,swatch){
+  document.getElementById('bg-solid').style.background=c;
+  document.getElementById('card').style.background=c;
+  if(swatch){swatch.closest('.color-row').querySelectorAll('.cswatch').forEach(s=>s.classList.remove('active'));swatch.classList.add('active');}
+}
+
+/* ═══════════════════════════════
+   WATERMARK (hidden, auto)
+═══════════════════════════════ */
+function updateWatermark(){
+  const text='AapkiAwaaz NEWS  ';
+  const wm=document.getElementById('wm-bg');wm.innerHTML='';
+  const line=text.repeat(60);
+  for(let i=0;i<40;i++){
+    const d=document.createElement('div');
+    d.style.cssText=`font-family:'Bebas Neue',cursive;font-size:8px;letter-spacing:2px;color:#111;white-space:nowrap;width:200%;line-height:2;`;
+    d.textContent=line;wm.appendChild(d);
   }
 }
 
-/* ═══════════════════════════════════════
-   BG IMAGE
-═══════════════════════════════════════ */
-function loadBgImg(inp) {
-  const file = inp.files[0];
-  if (!file) return;
-  const url = URL.createObjectURL(file);
-  const el = document.getElementById('bg-img-el');
-  el.src = url;
-  el.style.display = 'block';
-  bgImgLoaded = true;
-  bgImgVisible = true;
-  document.getElementById('tog-bgimg').classList.add('on');
-  document.getElementById('bg-upload-label').classList.add('has-img');
-  document.querySelector('#bg-upload-label span').textContent = '✓ ' + file.name.slice(0,20);
-  el.onload = () => { setBgImgScale(document.getElementById('bgimg-scale').value); };
+/* ═══════════════════════════════
+   CIRCLE BORDER
+═══════════════════════════════ */
+function setCircleBorder(c,swatch){
+  document.getElementById('circle-img-wrap').style.borderColor=c;
+  if(swatch){swatch.closest('.color-row').querySelectorAll('.cswatch').forEach(s=>s.classList.remove('active'));swatch.classList.add('active');}
 }
 
-function setBgImgScale(v) {
-  document.getElementById('bgimg-scale-val').textContent = v;
-  const el = document.getElementById('bg-img-el');
-  const card = document.getElementById('card');
-  el.style.width = (card.clientWidth * v / 100) + 'px';
-  el.style.height = 'auto';
-}
-
-/* ═══════════════════════════════════════
-   WATERMARK
-═══════════════════════════════════════ */
-let wmColor = '#111111';
-let wmFontSize = 8;
-
-function updateWatermark() {
-  const text = document.getElementById('wm-text-inp').value || 'NEWS';
-  const wm = document.getElementById('wm-bg');
-  wm.innerHTML = '';
-  const line = (text + '  ').repeat(80);
-  for (let i = 0; i < 40; i++) {
-    const span = document.createElement('div');
-    span.style.cssText = `font-family:'Bebas Neue',cursive;font-size:${wmFontSize}px;letter-spacing:2px;color:${wmColor};white-space:nowrap;width:200%;line-height:${wmFontSize < 16 ? 2 : 1.6};`;
-    span.textContent = line;
-    wm.appendChild(span);
-  }
-}
-function setWmOpacity(v) {
-  document.getElementById('wm-opacity-val').textContent = v;
-  document.getElementById('wm-bg').style.opacity = v / 100;
-}
-function setWmSize(v) {
-  wmFontSize = +v;
-  document.getElementById('wm-size-val').textContent = v;
-  updateWatermark();
-}
-function setWmColor(c, swatch) {
-  wmColor = c;
-  document.getElementById('wm-color-pick').value = c;
-  if (swatch) {
-    swatch.closest('.color-row').querySelectorAll('.cswatch').forEach(s => s.classList.remove('active'));
-    swatch.classList.add('active');
-  }
-  updateWatermark();
-}
-
-/* ═══════════════════════════════════════
-   HEADLINE
-═══════════════════════════════════════ */
-function updateHeadline() {
-  const txt = document.getElementById('headline-inp').value;
-  document.getElementById('headline-text').textContent = txt;
-}
-function setHeadlineFont(f) { document.getElementById('headline-text').style.fontFamily = f; }
-function setHeadlineSize(v) {
-  document.getElementById('headline-size-val').textContent = v;
-  document.getElementById('headline-text').style.fontSize = v + 'px';
-}
-function setHeadlineAlign(a, btn) {
-  document.getElementById('headline-text').style.textAlign = a;
-}
-
-let currentHeadlinePos = 'mid-center';
-function setHeadlinePos(pos, btn) {
-  currentHeadlinePos = pos || currentHeadlinePos;
-  if (btn) {
-    document.querySelectorAll('#headline-pos-grid .pgbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const el = document.getElementById('headline-el');
-  const card = document.getElementById('card');
-  const cw = card.clientWidth, ch = card.clientHeight;
-  const dh = el.offsetHeight;
-  const pad = 60;
-  const map = {
-    'top-left':   {top:pad+'px',left:'0',right:'0'},
-    'top-center': {top:pad+'px',left:'0',right:'0'},
-    'top-right':  {top:pad+'px',left:'0',right:'0'},
-    'mid-left':   {top:((ch-dh)/2)+'px',left:'0',right:'0'},
-    'mid-center': {top:((ch-dh)/2)+'px',left:'0',right:'0'},
-    'mid-right':  {top:((ch-dh)/2)+'px',left:'0',right:'0'},
-    'bot-left':   {top:(ch-dh-50)+'px',left:'0',right:'0'},
-    'bot-center': {top:(ch-dh-50)+'px',left:'0',right:'0'},
-    'bot-right':  {top:(ch-dh-50)+'px',left:'0',right:'0'},
-  };
-  const s = map[currentHeadlinePos] || map['mid-center'];
-  el.style.top = s.top; el.style.left = s.left; el.style.right = s.right;
-  // text align
-  const align = currentHeadlinePos.includes('left') ? 'left' : currentHeadlinePos.includes('right') ? 'right' : 'center';
-  document.getElementById('headline-text').style.textAlign = align;
-}
-
-/* ═══════════════════════════════════════
-   PERSON
-═══════════════════════════════════════ */
-function setPersonSize(v) {
-  document.getElementById('person-size-val').textContent = v;
-  document.getElementById('person-name').style.fontSize = v + 'px';
-  document.getElementById('person-label').style.fontSize = (parseInt(v)*0.75) + 'px';
-}
-let currentPersonPos = 'bot-left';
-function setPersonPos(pos, btn) {
-  currentPersonPos = pos || currentPersonPos;
-  if (btn) {
-    document.querySelectorAll('#person-pos-grid .pgbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const el = document.getElementById('person-el');
-  const card = document.getElementById('card');
-  const cw = card.clientWidth, ch = card.clientHeight;
-  const ew = el.offsetWidth, eh = el.offsetHeight;
-  const pad = 22, footH = 42;
-  const map = {
-    'top-left':   [pad, pad+50],
-    'top-center': [(cw-ew)/2, pad+50],
-    'top-right':  [cw-ew-pad, pad+50],
-    'mid-left':   [pad, (ch-eh)/2],
-    'mid-center': [(cw-ew)/2, (ch-eh)/2],
-    'mid-right':  [cw-ew-pad, (ch-eh)/2],
-    'bot-left':   [pad, ch-eh-footH-8],
-    'bot-center': [(cw-ew)/2, ch-eh-footH-8],
-    'bot-right':  [cw-ew-pad, ch-eh-footH-8],
-  };
-  const [x, y] = map[currentPersonPos] || [pad, ch-eh-footH-8];
-  el.style.left = x+'px'; el.style.top = y+'px';
-}
-
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    MAIN IMAGE
-═══════════════════════════════════════ */
-function loadMainImg(inp) {
-  const file = inp.files[0]; if (!file) return;
-  const url = URL.createObjectURL(file);
-  document.getElementById('main-img-img').src = url;
-  document.getElementById('main-img-el').style.display = 'block';
-  mainImgLoaded = true; mainImgVisible = true;
-  document.getElementById('tog-mainimg').classList.add('on');
-  document.getElementById('main-upload-label').classList.add('has-img');
-  document.querySelector('#main-upload-label span').textContent = '✓ ' + file.name.slice(0,20);
-  setTimeout(() => setMainImgSize(document.getElementById('main-img-w').value), 100);
-}
-function setMainImgSize(v) {
-  document.getElementById('main-img-w-val').textContent = v;
-  const card = document.getElementById('card');
-  const w = (card.clientWidth * v / 100);
-  const el = document.getElementById('main-img-el');
-  el.style.width = w + 'px';
-  el.style.height = 'auto';
-  setTimeout(() => setMainImgPos(currentMainImgPos), 50);
-}
-
-let currentMainImgPos = 'bot-right';
-function setMainImgPos(pos, btn) {
-  currentMainImgPos = pos || currentMainImgPos;
-  if (btn) {
-    document.querySelectorAll('#main-img-pos-grid .pgbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const el = document.getElementById('main-img-el');
-  const card = document.getElementById('card');
-  const cw = card.clientWidth, ch = card.clientHeight;
-  const ew = el.offsetWidth || (cw*0.6), eh = el.offsetHeight || (ch*0.6);
-  const footH = 42;
-  const map = {
-    'top-left':   [0, 50],
-    'top-center': [(cw-ew)/2, 50],
-    'top-right':  [cw-ew, 50],
-    'mid-left':   [0, (ch-eh)/2],
-    'mid-center': [(cw-ew)/2, (ch-eh)/2],
-    'mid-right':  [cw-ew, (ch-eh)/2],
-    'bot-left':   [0, ch-eh-footH],
-    'bot-center': [(cw-ew)/2, ch-eh-footH],
-    'bot-right':  [cw-ew, ch-eh-footH],
+═══════════════════════════════ */
+function loadMainImg(inp){
+  const file=inp.files[0];if(!file)return;
+  const url=URL.createObjectURL(file);
+  const img=document.getElementById('main-img-img');
+  img.src=url;
+  img.onload=()=>{
+    const card=document.getElementById('card');
+    const el=document.getElementById('main-img-el');
+    const maxW=card.clientWidth*0.6;
+    const scale=maxW/img.naturalWidth;
+    imgState.main.w=img.naturalWidth*scale;
+    imgState.main.h=img.naturalHeight*scale;
+    imgState.main.scale=1;
+    // bottom-right default
+    imgState.main.x=card.clientWidth-imgState.main.w;
+    imgState.main.y=card.clientHeight-imgState.main.h-36;
+    el.style.width=imgState.main.w+'px';
+    el.style.height=imgState.main.h+'px';
+    applyImgTransform('main-img-el','main');
+    el.style.display='block';
+    mainImgLoaded=true;mainImgVisible=true;
+    document.getElementById('tog-mainimg').classList.add('on');
+    document.getElementById('main-upload-label').classList.add('has-img');
+    document.querySelector('#main-upload-label span').textContent='✓ '+file.name.slice(0,20);
   };
-  const [x, y] = map[currentMainImgPos] || [cw-ew, ch-eh-footH];
-  el.style.left = x+'px'; el.style.top = y+'px';
 }
 
-/* ═══════════════════════════════════════
+function setMainBorder(style,btn){
+  document.querySelectorAll('.border-btns .bbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const el=document.getElementById('main-img-el');
+  el.style.filter='none';el.style.outline='none';
+  if(style==='glow')el.style.filter=`drop-shadow(0 0 8px ${accentColor}) drop-shadow(0 0 24px ${accentColor})`;
+  else if(style==='solid'){el.style.outline=`3px solid ${accentColor}`;el.style.filter='drop-shadow(0 4px 16px rgba(0,0,0,.5))';}
+  else if(style==='white'){el.style.outline='3px solid #fff';el.style.filter='drop-shadow(0 4px 16px rgba(0,0,0,.5))';}
+}
+
+/* ═══════════════════════════════
    CIRCLE IMAGE
-═══════════════════════════════════════ */
-function loadCircleImg(inp) {
-  const file = inp.files[0]; if (!file) return;
-  const url = URL.createObjectURL(file);
-  document.getElementById('circle-img-img').src = url;
-  circleImgLoaded = true;
-  if (circleVisible) document.getElementById('circle-img-wrap').style.display = 'block';
+═══════════════════════════════ */
+function loadCircleImg(inp){
+  const file=inp.files[0];if(!file)return;
+  const url=URL.createObjectURL(file);
+  document.getElementById('circle-img-img').src=url;
+  circleImgLoaded=true;
+  // top-right default
+  const card=document.getElementById('card');
+  const el=document.getElementById('circle-group');
+  imgState.circle.x=card.clientWidth-92-14;
+  imgState.circle.y=50+14;
+  imgState.circle.scale=1;
+  applyImgTransform('circle-group','circle');
   document.getElementById('circle-upload-label').classList.add('has-img');
-  document.querySelector('#circle-upload-label span').textContent = '✓ ' + file.name.slice(0,20);
+  document.querySelector('#circle-upload-label span').textContent='✓ '+file.name.slice(0,20);
 }
-function setCircleSize(v) {
-  document.getElementById('circle-size-val').textContent = v;
-  const el = document.getElementById('circle-img-wrap');
-  el.style.width = v+'px'; el.style.height = v+'px';
-  setTimeout(() => setCirclePos(currentCirclePos), 50);
+
+/* ═══════════════════════════════
+   TRANSFORM APPLY
+═══════════════════════════════ */
+function applyImgTransform(elId,key){
+  const el=document.getElementById(elId);
+  const s=imgState[key];
+  el.style.left=s.x+'px';
+  el.style.top=s.y+'px';
+  el.style.transform=`scale(${s.scale})`;
+  el.style.transformOrigin='top left';
 }
-function setCircleBorder(c, swatch) {
-  document.getElementById('circle-img-inner').style.borderColor = c;
-  if (swatch) {
-    swatch.closest('.color-row').querySelectorAll('.cswatch').forEach(s => s.classList.remove('active'));
-    swatch.classList.add('active');
+
+/* ═══════════════════════════════
+   PINCH + DRAG for images
+═══════════════════════════════ */
+function initImgGesture(elId,key){
+  const el=document.getElementById(elId);
+  let isDragging=false;
+  let startX,startY,startElX,startElY;
+  let isPinching=false;
+  let startDist=0,startScale=1;
+  let lastTap=0;
+
+  function getCenter(t){return{x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2};}
+  function getDist(t){const dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy);}
+
+  el.addEventListener('touchstart',e=>{
+    e.stopPropagation();
+    if(e.touches.length===1){
+      isDragging=true;isPinching=false;
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+      startElX=imgState[key].x;startElY=imgState[key].y;
+    } else if(e.touches.length===2){
+      isDragging=false;isPinching=true;
+      startDist=getDist(e.touches);
+      startScale=imgState[key].scale;
+    }
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchmove',e=>{
+    e.stopPropagation();e.preventDefault();
+    if(e.touches.length===1&&isDragging){
+      imgState[key].x=startElX+(e.touches[0].clientX-startX);
+      imgState[key].y=startElY+(e.touches[0].clientY-startY);
+      applyImgTransform(elId,key);
+    } else if(e.touches.length===2&&isPinching){
+      const d=getDist(e.touches);
+      imgState[key].scale=Math.max(0.2,Math.min(4,startScale*(d/startDist)));
+      applyImgTransform(elId,key);
+    }
+  },{passive:false});
+
+  el.addEventListener('touchend',e=>{
+    if(e.touches.length<2)isPinching=false;
+    if(e.touches.length===0)isDragging=false;
+  });
+
+  // Mouse drag for desktop
+  el.addEventListener('mousedown',e=>{
+    e.stopPropagation();isDragging=true;isPinching=false;
+    startX=e.clientX;startY=e.clientY;
+    startElX=imgState[key].x;startElY=imgState[key].y;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    imgState[key].x=startElX+(e.clientX-startX);
+    imgState[key].y=startElY+(e.clientY-startY);
+    applyImgTransform(elId,key);
+  });
+  document.addEventListener('mouseup',()=>{isDragging=false;});
+}
+
+/* ═══════════════════════════════
+   TEXT DRAG
+   Short tap = open toolbar
+   Move = drag
+═══════════════════════════════ */
+function initTxtDrag(elId){
+  const el=document.getElementById(elId);
+  let isDragging=false,moved=false;
+  let startX,startY,startElX,startElY;
+
+  el.addEventListener('touchstart',e=>{
+    e.stopPropagation();
+    moved=false;
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    const rect=el.getBoundingClientRect();
+    startElX=rect.left-el.offsetParent.getBoundingClientRect().left;
+    startElY=rect.top-el.offsetParent.getBoundingClientRect().top;
+    isDragging=true;
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchmove',e=>{
+    if(!isDragging)return;
+    const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
+    if(Math.abs(dx)>5||Math.abs(dy)>5){
+      moved=true;closeToolbar();
+      el.style.left=(startElX+dx)+'px';
+      el.style.top=(startElY+dy)+'px';
+      el.style.right='auto';
+    }
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchend',e=>{
+    isDragging=false;
+    if(!moved){
+      const which=elId==='headline-el'?'headline':'person';
+      openToolbar(which,el);
+    }
+  });
+
+  // mouse for desktop
+  el.addEventListener('mousedown',e=>{
+    e.stopPropagation();moved=false;isDragging=true;
+    startX=e.clientX;startY=e.clientY;
+    startElX=el.offsetLeft;startElY=el.offsetTop;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    const dx=e.clientX-startX,dy=e.clientY-startY;
+    if(Math.abs(dx)>3||Math.abs(dy)>3){moved=true;closeToolbar();}
+    if(moved){
+      el.style.left=(startElX+dx)+'px';
+      el.style.top=(startElY+dy)+'px';
+      el.style.right='auto';
+    }
+  });
+  document.addEventListener('mouseup',()=>{
+    if(isDragging&&!moved){
+      const which=elId==='headline-el'?'headline':'person';
+      openToolbar(which,document.getElementById(elId));
+    }
+    isDragging=false;
+  });
+}
+
+// stubs for compatibility with HTML attributes
+function onTxtTouch(){}
+function onTxtMouse(){}
+
+/* ═══════════════════════════════
+   TOOLBAR
+═══════════════════════════════ */
+function openToolbar(which,anchorEl){
+  selectedTxtEl=which;
+  const tb=document.getElementById('txt-toolbar');
+  const card=document.getElementById('card');
+
+  // populate
+  document.getElementById('tb-title').textContent=which==='headline'?'HEADLINE':'PERSON NAME';
+  document.getElementById('tb-align-row').style.display=which==='headline'?'flex':'none';
+  document.getElementById('tb-label-row').style.display=which==='person'?'flex':'none';
+  document.getElementById('tb-sublabel-wrap').style.display=which==='person'?'block':'none';
+  document.getElementById('tb-text-label').textContent=which==='headline'?'Edit Headline':'Name';
+
+  if(which==='headline'){
+    const txt=document.getElementById('headline-text');
+    document.getElementById('tb-text-inp').value=txt.textContent;
+    document.getElementById('tb-color').value=rgbToHex(txt.style.color)||'#111111';
+    document.getElementById('tb-sz-val').textContent=tbCurrentSize.headline;
+  } else {
+    document.getElementById('tb-text-inp').value=document.getElementById('person-name').textContent;
+    document.getElementById('tb-sublabel-inp').value=document.getElementById('person-label').textContent;
+    document.getElementById('tb-color').value=rgbToHex(document.getElementById('person-name').style.color)||accentColor;
+    document.getElementById('tb-lcolor').value=rgbToHex(document.getElementById('person-label').style.color)||'#555555';
+    document.getElementById('tb-sz-val').textContent=tbCurrentSize.person;
+  }
+
+  // position toolbar near element but inside card
+  const elRect=anchorEl.getBoundingClientRect();
+  const cardRect=card.getBoundingClientRect();
+  tb.style.display='flex';
+  const tbH=tb.offsetHeight||160;
+  const tbW=tb.offsetWidth||220;
+
+  let top=(elRect.top-cardRect.top)-tbH-8;
+  if(top<4)top=(elRect.bottom-cardRect.top)+8;
+  let left=(elRect.left-cardRect.left);
+  if(left+tbW>card.clientWidth-4)left=card.clientWidth-tbW-4;
+  if(left<4)left=4;
+
+  tb.style.top=Math.max(4,top)+'px';
+  tb.style.left=left+'px';
+  tb.classList.add('open');
+
+  document.querySelectorAll('.txt-block').forEach(b=>b.classList.remove('selected'));
+  anchorEl.classList.add('selected');
+}
+
+function closeToolbar(){
+  document.getElementById('txt-toolbar').classList.remove('open');
+  document.getElementById('txt-toolbar').style.display='none';
+  document.querySelectorAll('.txt-block').forEach(b=>b.classList.remove('selected'));
+  selectedTxtEl=null;
+}
+
+function applyTbText(v){
+  if(selectedTxtEl==='headline'){
+    document.getElementById('headline-text').textContent=v;
+  } else {
+    document.getElementById('person-name').textContent=v;
+  }
+}
+function applyTbFont(v){
+  if(selectedTxtEl==='headline')document.getElementById('headline-text').style.fontFamily=v;
+  else{document.getElementById('person-name').style.fontFamily=v;document.getElementById('person-label').style.fontFamily=v;}
+}
+function applyTbColor(v){
+  if(selectedTxtEl==='headline')document.getElementById('headline-text').style.color=v;
+  else document.getElementById('person-name').style.color=v;
+}
+function applyTbLabelColor(v){document.getElementById('person-label').style.color=v;}
+function applyTbAlign(v,btn){
+  document.querySelectorAll('#tb-align-row .tb-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('headline-text').style.textAlign=v;
+}
+function changeTbSize(delta){
+  const key=selectedTxtEl||'headline';
+  tbCurrentSize[key]=Math.max(8,Math.min(80,tbCurrentSize[key]+delta));
+  document.getElementById('tb-sz-val').textContent=tbCurrentSize[key];
+  if(key==='headline'){
+    document.getElementById('headline-text').style.fontSize=tbCurrentSize[key]+'px';
+  } else {
+    document.getElementById('person-name').style.fontSize=tbCurrentSize[key]+'px';
+    document.getElementById('person-label').style.fontSize=Math.round(tbCurrentSize[key]*0.73)+'px';
   }
 }
 
-let currentCirclePos = 'top-right';
-function setCirclePos(pos, btn) {
-  currentCirclePos = pos || currentCirclePos;
-  if (btn) {
-    document.querySelectorAll('#circle-pos-grid .pgbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const el = document.getElementById('circle-img-wrap');
-  const card = document.getElementById('card');
-  const cw = card.clientWidth, ch = card.clientHeight;
-  const sz = el.offsetWidth || 90;
-  const pad = 18, footH = 42, topH = 50;
-  const map = {
-    'top-left':   [pad, topH+pad],
-    'top-center': [(cw-sz)/2, topH+pad],
-    'top-right':  [cw-sz-pad, topH+pad],
-    'mid-left':   [pad, (ch-sz)/2],
-    'mid-center': [(cw-sz)/2, (ch-sz)/2],
-    'mid-right':  [cw-sz-pad, (ch-sz)/2],
-    'bot-left':   [pad, ch-sz-footH-pad],
-    'bot-center': [(cw-sz)/2, ch-sz-footH-pad],
-    'bot-right':  [cw-sz-pad, ch-sz-footH-pad],
-  };
-  const [x, y] = map[currentCirclePos] || [cw-sz-pad, topH+pad];
-  el.style.left = x+'px'; el.style.top = y+'px';
+/* ═══════════════════════════════
+   EXPORT
+═══════════════════════════════ */
+function setExportScale(s,btn){
+  exportScale=s;
+  document.querySelectorAll('.section:last-of-type .rbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
-/* ═══════════════════════════════════════
-   DRAG
-═══════════════════════════════════════ */
-function initDrag(id) {
-  const el = document.getElementById(id);
-  let dragging = false, sx, sy, ox, oy;
-  el.addEventListener('mousedown', e => {
-    dragging = true; sx = e.clientX; sy = e.clientY;
-    ox = el.offsetLeft; oy = el.offsetTop;
-    el.style.cursor = 'grabbing';
-    e.preventDefault();
-  });
-  el.addEventListener('touchstart', e => {
-    dragging = true;
-    const t = e.touches[0];
-    sx = t.clientX; sy = t.clientY;
-    ox = el.offsetLeft; oy = el.offsetTop;
-    e.preventDefault();
-  }, {passive:false});
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    el.style.left = (ox + e.clientX - sx) + 'px';
-    el.style.top  = (oy + e.clientY - sy) + 'px';
-    el.style.right = 'auto';
-  });
-  document.addEventListener('touchmove', e => {
-    if (!dragging) return;
-    const t = e.touches[0];
-    el.style.left = (ox + t.clientX - sx) + 'px';
-    el.style.top  = (oy + t.clientY - sy) + 'px';
-    el.style.right = 'auto';
-    e.preventDefault();
-  }, {passive:false});
-  const stop = () => { dragging = false; el.style.cursor = ''; };
-  document.addEventListener('mouseup', stop);
-  document.addEventListener('touchend', stop);
+async function downloadCard(){
+  closeToolbar();
+  const btn=document.getElementById('dl-btn');
+  btn.disabled=true;btn.textContent='⏳ Generating…';
+  await new Promise(r=>setTimeout(r,100));
+  try{
+    const card=document.getElementById('card');
+    const canvas=await html2canvas(card,{scale:exportScale,useCORS:true,allowTaint:true,backgroundColor:null,logging:false});
+    const a=document.createElement('a');
+    a.download='news-card.png';a.href=canvas.toDataURL('image/png');a.click();
+  }catch(e){alert('Error: '+e.message);}
+  btn.disabled=false;btn.textContent='⬇ Download Image';
 }
 
-/* ═══════════════════════════════════════
-   DOWNLOAD
-═══════════════════════════════════════ */
-async function downloadCard() {
-  const btns = document.querySelectorAll('.dl-btn');
-  btns.forEach(b => { b.disabled = true; b.textContent = '⏳ Generating…'; });
-  const card = document.getElementById('card');
-  const scale = parseFloat(document.getElementById('export-scale').value) || 2;
-  try {
-    const canvas = await html2canvas(card, {
-      scale, useCORS: true, allowTaint: true, backgroundColor: null, logging: false
-    });
-    const a = document.createElement('a');
-    a.download = 'news-card.png';
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  } catch(e) { alert('Error: ' + e.message); }
-  btns.forEach(b => { b.disabled = false; b.textContent = '⬇ Download Image'; });
+/* ═══════════════════════════════
+   UTILS
+═══════════════════════════════ */
+function rgbToHex(rgb){
+  if(!rgb||rgb.indexOf('#')===0)return rgb;
+  const m=rgb.match(/\d+/g);if(!m)return '#111111';
+  return '#'+m.slice(0,3).map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');
 }
 </script>
 </body>
